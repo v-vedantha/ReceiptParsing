@@ -16,6 +16,12 @@ class Pantry:
                   columns=pd.Index(['most_recent_date', 'most_recent_amount', 'total_amount', 'rate', 'current_amount'], name=''))
         self.relevent_ingredients = commonly_used
         
+    def __init__(self, path):
+        """
+        Initialises dataframe form a receipt
+        """
+        self.pantry = pd.read_json(path, 'placeholder')
+        
     def parse_receipt(self, path_to_receipt):
         """
         Sends the receipt into the receipt parser and returns the parsed receipt
@@ -76,7 +82,8 @@ class Pantry:
         if item in self.relevent_ingredients:
             if not math.isnan(self.pantry.at[item, 'rate']):
                 # If there is already a rate then do this
-                self.pantry.at[item, 'rate'] = alpha*self.pantry.at[item, 'most_recent_amount']/(buy_date - self.pantry.at[item, 'most_recent_date']).days + (1-alpha)*self.pantry.at[item, 'rate']
+                self.pantry.at[item, 'rate'] = alpha*self.pantry.at[item, 'most_recent_amount']/(buy_date - self.pantry.at[item, 'most_recent_date']).days + 
+                     (1-alpha)*self.pantry.at[item, 'rate']
             else:
                 # If there is no rate then do this
                 self.pantry.at[item, 'rate'] = self.pantry.at[item, 'most_recent_amount']/(buy_date - self.pantry.at[item, 'most_recent_date']).days
