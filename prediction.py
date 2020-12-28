@@ -3,7 +3,9 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 import re
 import json
+import os
 import math
+import pickle
 from pathlib import Path
 
 class Pantry:
@@ -18,16 +20,19 @@ class Pantry:
                   columns=pd.Index(['most_recent_date', 'most_recent_amount', 'total_amount', 'rate', 'current_amount'], name=''))
         self.relevent_ingredients = commonly_used
     
-    def __init__(self, path):
+    def load(self, path):
         """
         Loads a dataframe from the path
         """
+        self.pantry = pd.read_pickle(path / 'pantry.pkl')
+        with open(path / 'ingredients.pkl', "rb") as f:
+            self.relevent_ingredients = pickle.load(f)
         try:
-            self.pantry = pickle.load(path / 'pantry.pkl')
-            self.relevent_ingredients = pickle.load(path / 'ingredients.pkl')
+            pass
         except:
             print("Loading error")
             return None
+        
     def save(self, path):
         """
         Saves a dataframe to the file at path
