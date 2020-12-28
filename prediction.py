@@ -2,26 +2,45 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 import re
+import json
 import math
 from pathlib import Path
+
 class Pantry:
     def __init__(self, ingredients, commonly_used):
         """
         Initialises a dataframe to store the 'pantry' of items as well as the list of ingredients that we use.
         """
         data_dict = {}
-        for ingredient in data:
+        for ingredient in ingredients:
             data_dict[ingredient] = [0,0.0,0.0,0.0, 0]
-        self.pantry = pd.DataFrame(data_dict, index=pd.Index(data, name='Ingredients'),
+        self.pantry = pd.DataFrame(data_dict, index=pd.Index(ingredients, name='Ingredients'),
                   columns=pd.Index(['most_recent_date', 'most_recent_amount', 'total_amount', 'rate', 'current_amount'], name=''))
         self.relevent_ingredients = commonly_used
-        
+    
     def __init__(self, path):
         """
-        Initialises dataframe form a receipt
+        Loads a dataframe from the path
         """
-        self.pantry = pd.read_json(path, 'placeholder')
-        
+        try:
+            self.pantry = pickle.load(path / 'pantry.pkl')
+            self.relevent_ingredients = pickle.load(path / 'ingredients.pkl')
+        except:
+            print("Loading error")
+            return None
+    def save(self, path):
+        """
+        Saves a dataframe to the file at path
+        """
+        # Makes the directory if it does not exist
+        try:
+            os.makedirs(path, exist_ok=True)
+        except:
+            print('Unable to make that folder. This may mean the path to it is entered incorrectly')
+        self.pantry.to_pickle(path / 'pantry.pkl')
+        with open(path / 'ingredients.pkl', "wb") as f:
+            pickle.dump(self.relevent_ingredients, f)
+        return None
     def parse_receipt(self, path_to_receipt):
         """
         Sends the receipt into the receipt parser and returns the parsed receipt
@@ -82,7 +101,7 @@ class Pantry:
         if item in self.relevent_ingredients:
             if not math.isnan(self.pantry.at[item, 'rate']):
                 # If there is already a rate then do this
-                self.pantry.at[item, 'rate'] = alpha*self.pantry.at[item, 'most_recent_amount']/(buy_date - self.pantry.at[item, 'most_recent_date']).days + 
+                self.pantry.at[item, 'rate'] = alpha*self.pantry.at[item, 'most_recent_amount']/(buy_date - self.pantry.at[item, 'most_recent_date']).days + \
                      (1-alpha)*self.pantry.at[item, 'rate']
             else:
                 # If there is no rate then do this
