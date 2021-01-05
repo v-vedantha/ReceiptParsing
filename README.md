@@ -5,6 +5,7 @@ The goal of this project is to be able to
 2) Use receipt information to predict what ingredients I will need, and when I will need them
 
 Next steps:
-*Add ingredients that are bough regularly to the pantry list of possible ingredients
+*Add ingredients that are bough regularly to the pantry list of possible ingredients. Max's reasoning says NO to this.
+Instead we can search for a better master list.
 *Remove ingredients which do not fit our suggestion model
 *Use fb/inverse cooking to better adjust pantry stores depending on what you cook
