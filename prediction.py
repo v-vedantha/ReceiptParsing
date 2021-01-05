@@ -72,21 +72,17 @@ class Pantry:
         """
         score = -1
         closest_match = ''
+        ingredient_scores = []
         for ingredient_ in ingredients:
 
             # Placeholder matching algorithm
             ingredient = re.sub('[^0-9a-zA-Z]+', ' ', ingredient_)
             current_score = fuzz.partial_ratio(ingredient, query)
+            ingredient_scores.append(current_score)
 
-            # Compare to find the highest element
-            if current_score > score:
-                score = current_score
-                closest_match = ingredient_
                 
-        # If no close match is found, do not return anything
-        if score < 60:
-            return None
-        return closest_match
+
+        return ingredient_scores
 
     def update_amount(self):
         """
@@ -101,7 +97,6 @@ class Pantry:
 
         We are doing this using the formula from 6.02 where rtt = a*rtt + 1-a * rtt_old
         """
-        
         # If the item is already relevent (meaning it has been bought before), then update its rate
         if item in self.relevent_ingredients:
             if not math.isnan(self.pantry.at[item, 'rate']):
@@ -151,8 +146,12 @@ class Pantry:
         # If the item hasn't been used before then set up its amount
         if math.isnan(self.pantry.at[item_in_current_purchases, 'total_amount']):
             self.pantry.at[item_in_current_purchases, 'total_amount'] = 0
+        
+        # TODO: Only update the rate when we can safely assume that this purchase is on an 'empty' pantry
+        # This can be accomplished by checking wether the item is recently bough in terms of its usage rate
         self.update_rate(item_in_current_purchases, date, 0.2)
         
+        # Use the above TODO to adjust how we update the information about the item
         self.pantry.at[item_in_current_purchases, 'most_recent_date'] = date
         self.pantry.at[item_in_current_purchases, 'most_recent_amount'] = amount
         self.pantry.at[item_in_current_purchases, 'current_amount'] = amount
@@ -161,3 +160,35 @@ class Pantry:
         self.relevent_ingredients.add(item_in_current_purchases)
         
         return 0
+    
+    def cluster_unmatched_ingredients(self):
+        """
+        This method attempts to cluster ingredients not stored in our pantry.
+
+        For example, say you continously buy condensed milk from various brands. However, condensed
+        milk is not part of your pantry. We need a way to understand that all the brands of condensed
+        milk are the same selling the same item and extract that condensed milk is the item to record in our pantry.
+
+        Extracting the actualy item names might be hard without knowing which products fall into that category
+        and then looking for the similarities.
+
+        So first step is clustering the products.
+        1) 
+        
+        Second step is figuring out what the core item is 
+        
+        It seems like this is very difficult without some NLP model. It runs into the same problem as knn clustering
+        Consider red trucks, blue trucks, red cars and blue cars. Clustering with 2 categories yields either red * or * trucks
+        in one category, and without some understanding of red vs truck, (or kettle vs chips) it seems impossible to 
+        extract the information about the relevent item.
+
+        Asking around: Max said that they simply hard code in the categories. This means they say there are ONLY n categories
+        of clothes, and they take it from there. 
+
+        For online services you can classify items before they are even put up.
+
+        Maybe for a more comprehensive version of this app, it might be worth exploring using the online tags, but since
+        pantries are so specific, it is easier to just find a master list, and allow people to manually add items if their
+        culture is not accurately covered by the master list.
+        """
+        pass
